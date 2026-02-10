@@ -44,11 +44,11 @@ router.post('/auth/register', async (req, res) => {
             if (!name || !email || !password) return res.status(400).json({ error: 'Tüm alanlar gerekli.' });
             if (password.length < 6) return res.status(400).json({ error: 'Şifre en az 6 karakter.' });
 
-            const exists = await conn.query('SELECT id FROM users WHERE email = ?', [email]);
+            const [exists] = await conn.query('SELECT id FROM users WHERE email = ?', [email]);
             if (exists.length) return res.status(400).json({ error: 'Bu e-posta zaten kayıtlı.' });
 
             const hash = await bcrypt.hash(password, 10);
-            const result = await conn.query('INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)', [name, email, phone || '', hash]);
+            const [result] = await conn.query('INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)', [name, email, phone || '', hash]);
 
             req.session.user = { id: Number(result.insertId), name, email };
             res.json({ success: true, name });
@@ -60,7 +60,7 @@ router.post('/auth/login', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const { email, password } = req.body;
-            const users = await conn.query('SELECT * FROM users WHERE email = ?', [email]);
+            const [users] = await conn.query('SELECT * FROM users WHERE email = ?', [email]);
             if (!users.length) return res.status(401).json({ error: 'E-posta veya şifre hatalı.' });
             const user = users[0];
             const storedHash = user.password.toString();
@@ -83,7 +83,7 @@ router.post('/auth/admin-login', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const { email, password } = req.body;
-            const admins = await conn.query('SELECT * FROM admins WHERE email = ?', [email]);
+            const [admins] = await conn.query('SELECT * FROM admins WHERE email = ?', [email]);
             if (!admins.length) return res.status(401).json({ error: 'Admin bilgileri hatalı.' });
             const admin = admins[0];
             const storedHash = admin.password.toString(); // Buffer -> String conversion if needed
@@ -134,7 +134,7 @@ router.get('/products', async (req, res) => {
             if (req.query.sort === 'price-desc') orderBy = 'p.price DESC';
             if (req.query.sort === 'name') orderBy = 'p.name ASC';
 
-            const rows = await conn.query(
+            const [rows] = await conn.query(
                 `SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE ${where.join(' AND ')} ORDER BY ${orderBy}`,
                 params
             );
@@ -146,11 +146,11 @@ router.get('/products', async (req, res) => {
 router.get('/products/:id', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [req.params.id]);
+            const [rows] = await conn.query('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [req.params.id]);
             if (!rows.length) return res.status(404).json({ error: 'Ürün bulunamadı' });
             const product = rows[0];
 
-            const vehicles = await conn.query(
+            const [vehicles] = await conn.query(
                 'SELECT vm.*, vb.name as brand_name FROM product_vehicles pv JOIN vehicle_models vm ON pv.vehicle_model_id = vm.id JOIN vehicle_brands vb ON vm.brand_id = vb.id WHERE pv.product_id = ?',
                 [req.params.id]
             );
@@ -163,7 +163,7 @@ router.get('/products/:id', async (req, res) => {
 router.get('/categories', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query('SELECT c.*, (SELECT COUNT(*) FROM products WHERE category_id = c.id AND is_active = 1) as product_count FROM categories c WHERE c.is_active = 1 ORDER BY c.sort_order');
+            const [rows] = await conn.query('SELECT c.*, (SELECT COUNT(*) FROM products WHERE category_id = c.id AND is_active = 1) as product_count FROM categories c WHERE c.is_active = 1 ORDER BY c.sort_order');
             res.json(rows);
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -172,7 +172,7 @@ router.get('/categories', async (req, res) => {
 router.get('/vehicle-brands', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query('SELECT * FROM vehicle_brands WHERE is_active = 1 ORDER BY sort_order, name');
+            const [rows] = await conn.query('SELECT * FROM vehicle_brands WHERE is_active = 1 ORDER BY sort_order, name');
             res.json(rows);
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -181,7 +181,7 @@ router.get('/vehicle-brands', async (req, res) => {
 router.get('/vehicle-models/:brandId', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query('SELECT * FROM vehicle_models WHERE brand_id = ? AND is_active = 1 ORDER BY name', [req.params.brandId]);
+            const [rows] = await conn.query('SELECT * FROM vehicle_models WHERE brand_id = ? AND is_active = 1 ORDER BY name', [req.params.brandId]);
             res.json(rows);
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -193,7 +193,7 @@ router.post('/favorites/toggle', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const { product_id } = req.body;
-            const exists = await conn.query('SELECT id FROM favorites WHERE user_id = ? AND product_id = ?', [req.session.user.id, product_id]);
+            const [exists] = await conn.query('SELECT id FROM favorites WHERE user_id = ? AND product_id = ?', [req.session.user.id, product_id]);
             if (exists.length) {
                 await conn.query('DELETE FROM favorites WHERE user_id = ? AND product_id = ?', [req.session.user.id, product_id]);
                 res.json({ status: 'removed' });
@@ -220,7 +220,7 @@ router.post('/orders', async (req, res) => {
             const orderItems = [];
 
             for (const item of items) {
-                const prods = await conn.query('SELECT id, name, price FROM products WHERE id = ?', [item.id]);
+                const [prods] = await conn.query('SELECT id, name, price FROM products WHERE id = ?', [item.id]);
                 if (prods.length) {
                     const qty = Math.max(1, parseInt(item.qty) || 1);
                     total += prods[0].price * qty;
@@ -229,7 +229,7 @@ router.post('/orders', async (req, res) => {
             }
 
             const userId = req.session.user?.id || null;
-            const result = await conn.query(
+            const [result] = await conn.query(
                 'INSERT INTO orders_table (order_no, user_id, customer_name, customer_phone, customer_email, customer_address, customer_note, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 [orderNo, userId, name, phone, email || '', address || '', note || '', total]
             );
@@ -247,10 +247,10 @@ router.post('/orders', async (req, res) => {
 router.get('/orders/track/:orderNo', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query('SELECT order_no, customer_name, total, status, payment_status, tracking_no, cargo_company, created_at FROM orders_table WHERE order_no = ?', [req.params.orderNo]);
+            const [rows] = await conn.query('SELECT order_no, customer_name, total, status, payment_status, tracking_no, cargo_company, created_at FROM orders_table WHERE order_no = ?', [req.params.orderNo]);
             if (!rows.length) return res.status(404).json({ error: 'Sipariş bulunamadı' });
             const order = rows[0];
-            const items = await conn.query('SELECT product_name, quantity, price FROM order_items WHERE order_id = (SELECT id FROM orders_table WHERE order_no = ?)', [req.params.orderNo]);
+            const [items] = await conn.query('SELECT product_name, quantity, price FROM order_items WHERE order_id = (SELECT id FROM orders_table WHERE order_no = ?)', [req.params.orderNo]);
             order.items = items;
             res.json(order);
         });
@@ -278,11 +278,11 @@ router.post('/chat/send', async (req, res) => {
             const { session_key, message, sender = 'customer', visitor_name = 'Ziyaretçi' } = req.body;
             if (!session_key || !message) return res.status(400).json({ error: 'Eksik veri' });
 
-            let sessions = await conn.query('SELECT id FROM chat_sessions WHERE session_key = ?', [session_key]);
+            const [sessions] = await conn.query('SELECT id FROM chat_sessions WHERE session_key = ?', [session_key]);
             let sessionId;
 
             if (!sessions.length) {
-                const result = await conn.query('INSERT INTO chat_sessions (session_key, visitor_name, user_id) VALUES (?, ?, ?)',
+                const [result] = await conn.query('INSERT INTO chat_sessions (session_key, visitor_name, user_id) VALUES (?, ?, ?)',
                     [session_key, visitor_name, req.session.user?.id || null]);
                 sessionId = Number(result.insertId);
             } else {
@@ -299,7 +299,7 @@ router.post('/chat/send', async (req, res) => {
 router.get('/chat/messages/:sessionKey', async (req, res) => {
     try {
         await withConn(async (conn) => {
-            const rows = await conn.query(
+            const [rows] = await conn.query(
                 'SELECT cm.sender, cm.message, cm.created_at FROM chat_messages cm JOIN chat_sessions cs ON cm.session_id = cs.id WHERE cs.session_key = ? ORDER BY cm.created_at ASC',
                 [req.params.sessionKey]
             );
@@ -316,7 +316,7 @@ router.get('/settings/public', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const keys = ['company_name', 'iban', 'iban_holder', 'iban_bank', 'iban_note', 'phone', 'email', 'address', 'whatsapp', 'instagram', 'meta_description'];
-            const rows = await conn.query(`SELECT setting_key, setting_value FROM settings WHERE setting_key IN (${keys.map(() => '?').join(',')})`, keys);
+            const [rows] = await conn.query(`SELECT setting_key, setting_value FROM settings WHERE setting_key IN (${keys.map(() => '?').join(',')})`, keys);
             const settings = {};
             for (const r of rows) settings[r.setting_key] = r.setting_value;
             res.json(settings);

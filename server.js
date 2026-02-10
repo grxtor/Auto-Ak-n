@@ -16,11 +16,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Persistent Session (MySQL2 Store)
+const MySQLStore = require('express-mysql-session')(session);
+const sessionStore = new MySQLStore({}, pool);
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'autoakin_secret_key_2026',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 gün
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 gün
 }));
 
 // Ortak değişkenler
@@ -63,7 +68,7 @@ async function start() {
             console.log(`👤 Admin: admin@autoakin.com / AutoAkin2026!\n`);
         });
     } catch (err) {
-        console.error('❌ Başlatma hatası:', err.message);
+        console.error('❌ Başlatma hatası:', err);
         console.error('💡 config/db.js dosyasında MySQL bilgilerini kontrol edin.');
         process.exit(1);
     }

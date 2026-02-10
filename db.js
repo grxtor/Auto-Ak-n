@@ -1,11 +1,25 @@
 // Auto Akın — MySQL2 Veritabanı Modülü
 const mysql = require('mysql2/promise');
+const fs = require('fs');
 
-// Plesk'te bu bilgileri düzenleyin
+// Plesk/Yerel bağlantı bilgileri
 const dbHost = process.env.DB_HOST || 'localhost';
+
+// Soket tespiti (Shared hosting veya yerel Mac/Linux için otomatik bulur)
+let socketPath = process.env.DB_SOCKET;
+if (!socketPath && dbHost === 'localhost') {
+  const commonPaths = [
+    '/var/lib/mysql/mysql.sock',
+    '/tmp/mysql.sock',
+    '/var/run/mysqld/mysqld.sock',
+    '/Applications/MAMP/tmp/mysql/mysql.sock' // Mac MAMP desteği
+  ];
+  socketPath = commonPaths.find(p => fs.existsSync(p));
+}
+
 const pool = mysql.createPool({
   host: dbHost,
-  socketPath: dbHost === 'localhost' ? (process.env.DB_SOCKET || '/var/lib/mysql/mysql.sock') : undefined,
+  socketPath: socketPath,
   user: process.env.DB_USER || 'autoakin',
   password: process.env.DB_PASS || '45899213.Te',
   database: process.env.DB_NAME || 'oce97yazilimcom_',
@@ -13,7 +27,9 @@ const pool = mysql.createPool({
   charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
 // Tablo oluşturma
