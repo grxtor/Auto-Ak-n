@@ -10,7 +10,7 @@ async function withConn(fn) {
     finally { if (conn) conn.release(); }
 }
 
-// Ana Sayfa
+// Ana Sayfa Data
 router.get('/', async (req, res) => {
     try {
         await withConn(async (conn) => {
@@ -19,36 +19,32 @@ router.get('/', async (req, res) => {
             const [discounted] = await conn.query('SELECT * FROM products WHERE old_price IS NOT NULL AND old_price > price AND is_active = 1 LIMIT 4');
             const [vehicleBrands] = await conn.query('SELECT * FROM vehicle_brands WHERE is_active = 1 ORDER BY sort_order, name');
 
-            res.render('index', {
-                pageTitle: 'Auto Akın | Yedek Parça Pazaryeri',
-                pageDesc: 'Otomotiv yedek parça ve aksesuar pazaryeri. Hızlı tedarik, net fiyat, güvenli ödeme.',
+            res.json({
                 categories, featured, discounted, vehicleBrands
             });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Ürünler
+// Ürünler Filtrele/Listele Data
 router.get('/urunler', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [categories] = await conn.query('SELECT * FROM categories WHERE is_active = 1 ORDER BY sort_order');
             const [vehicleBrands] = await conn.query('SELECT * FROM vehicle_brands WHERE is_active = 1 ORDER BY name');
-            res.render('products', {
-                pageTitle: 'Ürünler | Auto Akın',
-                pageDesc: 'Otomotiv yedek parça ürünleri.',
+            res.json({
                 categories, vehicleBrands, query: req.query
             });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Ürün Detay
+// Ürün Detay Data
 router.get('/urun/:id', async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [rows] = await conn.query('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?', [req.params.id]);
-            if (!rows.length) return res.status(404).render('404', { pageTitle: '404 | Auto Akın' });
+            if (!rows.length) return res.status(404).json({ error: 'Ürün bulunamadı' });
             const product = rows[0];
 
             const [vehicles] = await conn.query('SELECT vm.*, vb.name as brand_name FROM product_vehicles pv JOIN vehicle_models vm ON pv.vehicle_model_id = vm.id JOIN vehicle_brands vb ON vm.brand_id = vb.id WHERE pv.product_id = ?', [req.params.id]);
@@ -60,45 +56,47 @@ router.get('/urun/:id', async (req, res) => {
                 isFav = favs.length > 0;
             }
 
-            res.render('product-detail', {
-                pageTitle: product.name + ' | Auto Akın',
-                pageDesc: (product.description || product.name).substring(0, 160),
+            res.json({
                 product, vehicles, related, isFav
             });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Sepet
+// Sepet - Frontend tarafında yönetilecek, boş response dönüyoruz
 router.get('/sepet', (req, res) => {
-    res.render('cart', { pageTitle: 'Sepet | Auto Akın', pageDesc: 'Alışveriş sepetiniz.' });
+    res.json({ message: 'Cart page data requested' });
 });
 
 // Ödeme
 router.get('/odeme', (req, res) => {
-    res.render('checkout', { pageTitle: 'Ödeme | Auto Akın', pageDesc: 'Siparişinizi tamamlayın.' });
+    res.json({ message: 'Checkout page data requested' });
 });
 
-// Giriş
+// Giriş Durumu
 router.get('/giris', (req, res) => {
-    if (req.session.user) return res.redirect('/');
-    res.render('login', { pageTitle: 'Giriş / Kayıt | Auto Akın', pageDesc: 'Hesabınıza giriş yapın.' });
+    if (req.session.user) {
+        return res.json({ loggedIn: true, user: req.session.user });
+    }
+    res.json({ loggedIn: false });
 });
 
 // Sipariş Takip
 router.get('/siparis-takip', (req, res) => {
-    res.render('order-track', { pageTitle: 'Sipariş Takip | Auto Akın', pageDesc: 'Siparişinizi takip edin.' });
+    res.json({ message: 'Order track page data requested' });
 });
 
 // Favoriler
 router.get('/favoriler', async (req, res) => {
-    if (!req.session.user) return res.redirect('/giris');
+    if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
     try {
         await withConn(async (conn) => {
             const [favs] = await conn.query('SELECT p.* FROM favorites f JOIN products p ON f.product_id = p.id WHERE f.user_id = ? ORDER BY f.created_at DESC', [req.session.user.id]);
-            res.render('favorites', { pageTitle: 'Favoriler | Auto Akın', pageDesc: 'Favori ürünleriniz.', favorites: favs });
+            res.json({ favorites: favs });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
+
+module.exports = router;
 
 module.exports = router;

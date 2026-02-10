@@ -37,13 +37,13 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-// ── Admin Login Page ──
+// ── Admin Login Status ──
 router.get('/', (req, res) => {
-    if (req.session.admin) return res.redirect('/panel/dashboard');
-    res.render('admin/login', { pageTitle: 'Admin Girişi | Auto Akın' });
+    if (req.session.admin) return res.json({ loggedIn: true, admin: req.session.admin });
+    res.json({ loggedIn: false });
 });
 
-// ── Dashboard ──
+// ── Dashboard Data ──
 router.get('/dashboard', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
@@ -53,25 +53,24 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
             const [recentOrders] = await conn.query("SELECT * FROM orders_table ORDER BY created_at DESC LIMIT 5");
             const [userCount] = await conn.query("SELECT COUNT(*) as total FROM users");
 
-            res.render('admin/dashboard', {
-                pageTitle: 'Dashboard | Auto Akın Panel',
+            res.json({
                 stats: { orders: orderStats[0], products: productStats[0], chats: chatStats[0], users: userCount[0] },
                 recentOrders
             });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Products ──
+// ── Products List Data ──
 router.get('/urunler', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [products] = await conn.query('SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC');
             const [categories] = await conn.query('SELECT * FROM categories ORDER BY sort_order');
             const [vehicleBrands] = await conn.query('SELECT * FROM vehicle_brands WHERE is_active = 1 ORDER BY name');
-            res.render('admin/products', { pageTitle: 'Ürünler | Auto Akın Panel', products, categories, vehicleBrands });
+            res.json({ products, categories, vehicleBrands });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Ürün ekle
@@ -97,8 +96,8 @@ router.post('/urunler/add', requireAdmin, upload.fields([
                 }
             }
         });
-        res.redirect('/panel/urunler');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Ürün düzenle
@@ -126,8 +125,8 @@ router.post('/urunler/edit/:id', requireAdmin, upload.fields([
                 }
             }
         });
-        res.redirect('/panel/urunler');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Ürün sil
@@ -140,21 +139,21 @@ router.post('/urunler/delete/:id', requireAdmin, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Orders ──
+// ── Orders List Data ──
 router.get('/siparisler', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [orders] = await conn.query('SELECT * FROM orders_table ORDER BY created_at DESC');
-            res.render('admin/orders', { pageTitle: 'Siparişler | Auto Akın Panel', orders });
+            res.json({ orders });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get('/siparisler/:id', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [orders] = await conn.query('SELECT * FROM orders_table WHERE id = ?', [req.params.id]);
-            if (!orders.length) return res.redirect('/panel/siparisler');
+            if (!orders.length) return res.status(404).json({ error: 'Sipariş bulunamadı' });
             const [items] = await conn.query('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
             res.json({ order: orders[0], items });
         });
@@ -172,14 +171,14 @@ router.post('/siparisler/update/:id', requireAdmin, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Chat (Admin) ──
+// ── Chat (Admin) Data ──
 router.get('/destek', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [sessions] = await conn.query("SELECT cs.*, (SELECT COUNT(*) FROM chat_messages WHERE session_id = cs.id) as msg_count, (SELECT message FROM chat_messages WHERE session_id = cs.id ORDER BY created_at DESC LIMIT 1) as last_message FROM chat_sessions cs ORDER BY cs.updated_at DESC");
-            res.render('admin/support', { pageTitle: 'Destek | Auto Akın Panel', sessions });
+            res.json({ sessions });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get('/destek/messages/:sessionId', requireAdmin, async (req, res) => {
@@ -202,15 +201,15 @@ router.post('/destek/reply', requireAdmin, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Vehicles (Admin) ──
+// ── Vehicles (Admin) Data ──
 router.get('/araclar', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             const [brands] = await conn.query('SELECT * FROM vehicle_brands ORDER BY sort_order, name');
             const [models] = await conn.query('SELECT vm.*, vb.name as brand_name FROM vehicle_models vm JOIN vehicle_brands vb ON vm.brand_id = vb.id ORDER BY vb.name, vm.name');
-            res.render('admin/vehicles', { pageTitle: 'Araçlar | Auto Akın Panel', brands, models });
+            res.json({ brands, models });
         });
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/araclar/add-brand', requireAdmin, async (req, res) => {
@@ -218,8 +217,8 @@ router.post('/araclar/add-brand', requireAdmin, async (req, res) => {
         await withConn(async (conn) => {
             await conn.query('INSERT INTO vehicle_brands (name) VALUES (?)', [req.body.name]);
         });
-        res.redirect('/panel/araclar');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/araclar/add-model', requireAdmin, async (req, res) => {
@@ -229,8 +228,8 @@ router.post('/araclar/add-model', requireAdmin, async (req, res) => {
             await conn.query('INSERT INTO vehicle_models (brand_id, name, year_start, year_end) VALUES (?, ?, ?, ?)',
                 [brand_id, name, year_start || null, year_end || null]);
         });
-        res.redirect('/panel/araclar');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/araclar/delete-brand/:id', requireAdmin, async (req, res) => {
@@ -247,14 +246,14 @@ router.post('/araclar/delete-model/:id', requireAdmin, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Categories (Admin) ──
+// ── Categories (Admin) Data ──
 router.post('/kategoriler/add', requireAdmin, async (req, res) => {
     try {
         await withConn(async (conn) => {
             await conn.query('INSERT INTO categories (name, icon) VALUES (?, ?)', [req.body.name, req.body.icon || '📦']);
         });
-        res.redirect('/panel/urunler');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/kategoriler/delete/:id', requireAdmin, async (req, res) => {
@@ -264,12 +263,12 @@ router.post('/kategoriler/delete/:id', requireAdmin, async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Settings ──
+// ── Settings Data ──
 router.get('/ayarlar', requireAdmin, async (req, res) => {
     try {
         const settings = await getSettings();
-        res.render('admin/settings', { pageTitle: 'Ayarlar | Auto Akın Panel', s: settings });
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ settings });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/ayarlar/save', requireAdmin, async (req, res) => {
@@ -279,8 +278,8 @@ router.post('/ayarlar/save', requireAdmin, async (req, res) => {
                 await conn.query('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)', [key, value]);
             }
         });
-        res.redirect('/panel/ayarlar');
-    } catch (e) { res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.post('/ayarlar/change-password', requireAdmin, async (req, res) => {
