@@ -1,0 +1,27 @@
+{
+  "name": "auto-akin",
+  "version": "1.0.0",
+  "description": "Auto Akın - Otomotiv Yedek Parça E-Ticaret",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "otomotiv",
+    "yedek-parca",
+    "e-ticaret"
+  ],
+  "author": "Auto Akın",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.4",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.19.0",
+    "multer": "^2.0.2",
+    "mysql2": "^3.16.3"
+  }
+}

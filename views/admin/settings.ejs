@@ -1,0 +1,81 @@
+<%- include('layout') %>
+
+        <h2 style="margin-bottom:24px;">Site Ayarları</h2>
+
+        <form action="/panel/ayarlar/save" method="POST">
+                <div class="panel-grid">
+                        <!-- Şirket -->
+                        <div class="panel-card">
+                                <div class="card-header">Şirket Bilgileri</div>
+                                <div class="form-group"><label>Şirket Adı</label><input type="text" name="company_name"
+                                                value="<%= s.company_name || '' %>" /></div>
+                                <div class="form-group"><label>Telefon</label><input type="tel" name="phone"
+                                                value="<%= s.phone || '' %>" /></div>
+                                <div class="form-group"><label>E-posta</label><input type="email" name="email"
+                                                value="<%= s.email || '' %>" /></div>
+                                <div class="form-group"><label>Adres</label><textarea name="address"
+                                                rows="2"><%= s.address || '' %></textarea></div>
+                        </div>
+
+                        <!-- IBAN -->
+                        <div class="panel-card">
+                                <div class="card-header">IBAN Bilgileri</div>
+                                <div class="form-group"><label>Hesap Sahibi</label><input type="text" name="iban_holder"
+                                                value="<%= s.iban_holder || '' %>" /></div>
+                                <div class="form-group"><label>IBAN</label><input type="text" name="iban"
+                                                value="<%= s.iban || '' %>" />
+                                </div>
+                                <div class="form-group"><label>Banka</label><input type="text" name="iban_bank"
+                                                value="<%= s.iban_bank || '' %>" /></div>
+                                <div class="form-group"><label>Açıklama Notu</label><textarea name="iban_note"
+                                                rows="2"><%= s.iban_note || '' %></textarea></div>
+                        </div>
+
+                        <!-- Sosyal Medya -->
+                        <div class="panel-card">
+                                <div class="card-header">Sosyal Medya & İletişim</div>
+                                <div class="form-group"><label>WhatsApp Numarası (ülke kodu ile)</label><input
+                                                type="text" name="whatsapp" value="<%= s.whatsapp || '' %>"
+                                                placeholder="905XXXXXXXXX" /></div>
+                                <div class="form-group"><label>Instagram</label><input type="text" name="instagram"
+                                                value="<%= s.instagram || '' %>" placeholder="@kullanicadi" /></div>
+                        </div>
+
+                        <!-- SEO -->
+                        <div class="panel-card">
+                                <div class="card-header">SEO Ayarları</div>
+                                <div class="form-group"><label>Meta Açıklama</label><textarea name="meta_description"
+                                                rows="3"><%= s.meta_description || '' %></textarea></div>
+                        </div>
+                </div>
+
+                <button class="btn btn-lg" type="submit" style="margin-top:16px;">💾 Ayarları Kaydet</button>
+        </form>
+
+        <hr style="margin:32px 0;" />
+
+        <div class="panel-card" style="max-width:400px;">
+                <div class="card-header">🔒 Şifre Değiştir</div>
+                <form id="passForm">
+                        <div class="form-group"><label>Mevcut Şifre</label><input type="password" id="curPass"
+                                        required /></div>
+                        <div class="form-group"><label>Yeni Şifre</label><input type="password" id="newPass" required
+                                        minlength="6" /></div>
+                        <button class="btn" type="submit">Şifre Değiştir</button>
+                </form>
+        </div>
+
+        <script>
+                document.getElementById('passForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const r = await fetch('/panel/ayarlar/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current_password: document.getElementById('curPass').value, new_password: document.getElementById('newPass').value }) });
+                        const d = await r.json();
+                        if (d.error) showToast(d.error);
+                        else { showToast('Şifre değiştirildi!'); document.getElementById('curPass').value = ''; document.getElementById('newPass').value = ''; }
+                });
+        </script>
+
+        </div>
+        </body>
+
+        </html>

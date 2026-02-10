@@ -1,0 +1,145 @@
+<%- include('partials/header') %>
+
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Auto Akın","description":"<%= pageDesc %>","priceRange":"₺₺","currenciesAccepted":"TRY"}
+</script>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-left">
+            <div class="badge">🏎️ Otomotiv Pazaryeri</div>
+            <h1>Aradığın tüm otomotiv parçaları tek yerde.</h1>
+            <p class="muted">Fren, süspansiyon, motor, kaporta, aksesuar ve daha fazlası. Hızlı tedarik, net fiyat,
+                güvenli ödeme.</p>
+            <form class="searchbar" action="/urunler" method="GET">
+                <input type="text" name="q" placeholder="Ürün, marka veya OEM no ara..." />
+                <button class="btn" type="submit">Ara</button>
+            </form>
+            <div class="hero-cta">
+                <a class="btn" href="/urunler">Öne Çıkanlar</a>
+                <a class="btn btn-black" href="/urunler">Tüm Ürünler →</a>
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="hero-card">
+                <div class="hero-card-header">Bugün Öne Çıkanlar</div>
+                <ul class="hero-list">
+                    <% discounted.forEach(d=> { %>
+                        <% const disc=d.old_price ? Math.round((1 - d.price / d.old_price) * 100) : 0; %>
+                            <li><a href="/urun/<%= d.id %>">
+                                    <%= d.name %> — %<%= disc %> indirim
+                                </a></li>
+                            <% }); %>
+                                <% if (!discounted.length) { %>
+                                    <li>Henüz indirimli ürün yok</li>
+                                    <% } %>
+                </ul>
+                <a class="btn btn-block" href="/urunler">Tümünü Gör</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Araç Seçici -->
+    <% if (vehicleBrands.length) { %>
+        <section class="section light">
+            <div class="section-header">
+                <h2>🚗 Aracına Göre Parça Bul</h2>
+            </div>
+            <form class="filter-bar" style="background:transparent;border:none;padding:0;" action="/urunler"
+                method="GET">
+                <select name="vehicle_brand_id" id="vBrand" onchange="loadModels(this.value,'vModel')" style="flex:1;">
+                    <option value="">Marka Seçin</option>
+                    <% vehicleBrands.forEach(vb=> { %><option value="<%= vb.id %>">
+                            <%= vb.name %>
+                        </option>
+                        <% }); %>
+                </select>
+                <select name="vehicle_model_id" id="vModel" style="flex:1;">
+                    <option value="">Önce marka seçin</option>
+                </select>
+                <button class="btn" type="submit">🔍 Parça Bul</button>
+            </form>
+        </section>
+        <% } %>
+
+            <!-- Kategoriler -->
+            <section id="kategoriler" class="section">
+                <div class="section-header">
+                    <h2>Kategoriler</h2><a class="link-underline" href="/urunler">Tümü</a>
+                </div>
+                <div class="grid grid-5">
+                    <% categories.forEach(cat=> { %>
+                        <a class="cat-card" href="/urunler?category_id=<%= cat.id %>">
+                            <div class="cat-icon">
+                                <%= cat.icon %>
+                            </div>
+                            <div class="cat-name">
+                                <%= cat.name %>
+                            </div>
+                            <div class="cat-count">
+                                <%= cat.product_count %> ürün
+                            </div>
+                        </a>
+                        <% }); %>
+                </div>
+            </section>
+
+            <!-- Ürünler -->
+            <section class="section light">
+                <div class="section-header">
+                    <h2>Sana Özel Ürünler</h2><a class="link-underline" href="/urunler">Tümü</a>
+                </div>
+                <div class="grid grid-5">
+                    <% featured.slice(0,10).forEach(p=> { %>
+                        <a class="product-card" href="/urun/<%= p.id %>">
+                            <div class="product-img">
+                                <% if (p.badge) { %><span class="product-badge">
+                                        <%= p.badge %>
+                                    </span>
+                                    <% } %>
+                                        <% if (p.image) { %><img src="/<%= p.image %>" alt="<%= p.name %>" />
+                                            <% } %>
+                            </div>
+                            <div class="product-brand">
+                                <%= p.brand || '' %>
+                            </div>
+                            <div class="product-title">
+                                <%= p.name %>
+                            </div>
+                            <div class="product-prices">
+                                <span class="product-price">
+                                    <%= Number(p.price).toLocaleString('tr-TR') %> TL
+                                </span>
+                                <% if (p.old_price) { %><span class="product-old-price">
+                                        <%= Number(p.old_price).toLocaleString('tr-TR') %> TL
+                                    </span>
+                                    <% } %>
+                            </div>
+                            <button class="btn btn-small add-to-cart-btn" data-id="<%= p.id %>">Sepete Ekle</button>
+                        </a>
+                        <% }); %>
+                            <% if (!featured.length) { %>
+                                <div class="empty-state" style="grid-column:1/-1;">
+                                    <div class="empty-state-icon">📦</div>
+                                    <h3>Henüz ürün eklenmemiş</h3>
+                                    <p class="muted">Admin panelinden ürün ekleyebilirsiniz.</p>
+                                </div>
+                                <% } %>
+                </div>
+            </section>
+
+            <!-- Destek -->
+            <section id="destek" class="section">
+                <div class="row"
+                    style="background: #fff; padding: 48px; border-radius: 20px; border: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h2 style="margin-bottom: 12px;">Sorun mu var? Canlı Destek Yanında!</h2>
+                        <p class="muted">Ürün uyumluluğu, stok durumu veya kargo takibi hakkında merak ettiğin her şeyi
+                            uzman ekibimize sorabilirsin.</p>
+                    </div>
+                    <button class="btn btn-lg" onclick="document.getElementById('chatToggle').click()">💬 Hemen Sohbete
+                        Başla</button>
+                </div>
+            </section>
+
+            <%- include('partials/footer') %>

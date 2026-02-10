@@ -1,0 +1,110 @@
+<%- include('layout') %>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-icon">📦</div>
+            <div class="stat-title">Toplam Sipariş</div>
+            <div class="stat-value">
+                <%= stats.orders.total %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-title">Bekleyen Sipariş</div>
+            <div class="stat-value">
+                <%= stats.orders.pending || 0 %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">💰</div>
+            <div class="stat-title">Dekont Bekleyen</div>
+            <div class="stat-value">
+                <%= stats.orders.payment_waiting || 0 %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-title">Toplam Ürün</div>
+            <div class="stat-value">
+                <%= stats.products.total %>
+            </div>
+        </div>
+    </div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-icon">💬</div>
+            <div class="stat-title">Aktif Chat</div>
+            <div class="stat-value">
+                <%= stats.chats.active %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">👥</div>
+            <div class="stat-title">Kayıtlı Üye</div>
+            <div class="stat-value">
+                <%= stats.users.total %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-title">Düşük Stok</div>
+            <div class="stat-value">
+                <%= stats.products.low_stock || 0 %>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">💵</div>
+            <div class="stat-title">Toplam Ciro</div>
+            <div class="stat-value">
+                <%= stats.orders.revenue ? Number(stats.orders.revenue).toLocaleString('tr-TR') : '0' %> ₺
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-grid">
+        <div class="panel-card">
+            <div class="card-header">Son Siparişler <a href="/panel/siparisler"
+                    style="font-size:12px;color:var(--red);">Tümü →</a></div>
+            <div class="card-list">
+                <% recentOrders.forEach(o=> { %>
+                    <div class="card-list-item"
+                        style="padding: 16px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-weight: 700; color: #1a1c1e;">
+                                <%= o.order_no %>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-muted);">
+                                <%= o.customer_name %>
+                            </div>
+                        </div>
+                        <span
+                            class="status <%= o.status==='delivered'?'success': (o.status==='cancelled'?'pending':'warn') %>">
+                            <%= o.status==='pending' ?'Bekliyor':o.status==='confirmed'
+                                ?'Onaylandı':o.status==='preparing' ?'Hazırlanıyor':o.status==='shipped'
+                                ?'Kargoda':o.status==='delivered' ?'Teslim Edildi':'İptal' %>
+                        </span>
+                    </div>
+                    <% }); %>
+                        <% if(!recentOrders.length){ %>
+                            <div style="padding: 24px; text-align: center; color: var(--text-muted);">Henüz sipariş yok
+                            </div>
+                            <% } %>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="card-header">Hızlı Erişim</div>
+            <div style="display:grid;gap:8px;">
+                <a href="/panel/urunler" class="btn btn-outline btn-block" style="justify-content:flex-start;">📦 Ürün
+                    Yönetimi</a>
+                <a href="/panel/siparisler" class="btn btn-outline btn-block" style="justify-content:flex-start;">🧾
+                    Siparişler</a>
+                <a href="/panel/araclar" class="btn btn-outline btn-block" style="justify-content:flex-start;">🚗 Araç
+                    Yönetimi</a>
+                <a href="/panel/destek" class="btn btn-outline btn-block" style="justify-content:flex-start;">💬 Canlı
+                    Destek</a>
+                <a href="/panel/ayarlar" class="btn btn-outline btn-block" style="justify-content:flex-start;">⚙️
+                    Ayarlar</a>
+            </div>
+        </div>
+    </div>

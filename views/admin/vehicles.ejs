@@ -1,0 +1,93 @@
+<%- include('layout') %>
+
+    <h2 style="margin-bottom:24px;">Araç Yönetimi</h2>
+
+    <div class="panel-grid">
+        <!-- Markalar -->
+        <div class="panel-card">
+            <div class="card-header">Araç Markaları (<%= brands.length %>)</div>
+            <form action="/panel/araclar/add-brand" method="POST" style="display:flex;gap:8px;margin-bottom:16px;">
+                <input type="text" name="name" placeholder="Yeni marka adı..." required style="flex:1;" />
+                <button class="btn" type="submit">Ekle</button>
+            </form>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                <% brands.forEach(b=> { %>
+                    <span class="tag">
+                        <%= b.name %>
+                            <span class="delete-brand-btn delete-btn" data-id="<%= b.id %>">✕</span>
+                    </span>
+                    <% }); %>
+            </div>
+        </div>
+
+        <!-- Modeller -->
+        <div class="panel-card">
+            <div class="card-header">Araç Modelleri (<%= models.length %>)</div>
+            <form action="/panel/araclar/add-model" method="POST" style="display:grid;gap:8px;margin-bottom:16px;">
+                <select name="brand_id" required>
+                    <option value="">Marka seçin</option>
+                    <% brands.forEach(b=> { %><option value="<%= b.id %>">
+                            <%= b.name %>
+                        </option>
+                        <% }); %>
+                </select>
+                <input type="text" name="name" placeholder="Model adı (ör: Corolla)" required />
+                <div style="display:flex;gap:8px;">
+                    <input type="number" name="year_start" placeholder="Başlangıç yılı" style="flex:1;" />
+                    <input type="number" name="year_end" placeholder="Bitiş yılı" style="flex:1;" />
+                </div>
+                <button class="btn" type="submit">Model Ekle</button>
+            </form>
+            <div class="panel-table" style="max-height:400px;overflow-y:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Marka</th>
+                            <th>Model</th>
+                            <th>Yıl</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% models.forEach(m=> { %>
+                            <tr>
+                                <td>
+                                    <%= m.brand_name %>
+                                </td>
+                                <td>
+                                    <%= m.name %>
+                                </td>
+                                <td>
+                                    <%= m.year_start ? m.year_start + '-' + (m.year_end || '...' ) : '—' %>
+                                </td>
+                                <td><button class="btn btn-outline btn-small delete-model-btn" data-id="<%= m.id %>"
+                                        style="color:var(--red);">✕</button></td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.delete-brand-btn')) {
+                const id = e.target.closest('.delete-brand-btn').dataset.id;
+                if (!confirm('Bu markayı ve tüm modellerini silmek istediğinize emin misiniz?')) return;
+                await fetch('/panel/araclar/delete-brand/' + id, { method: 'POST' });
+                location.reload();
+            }
+            if (e.target.closest('.delete-model-btn')) {
+                const id = e.target.closest('.delete-model-btn').dataset.id;
+                if (!confirm('Bu modeli silmek istediğinize emin misiniz?')) return;
+                await fetch('/panel/araclar/delete-model/' + id, { method: 'POST' });
+                location.reload();
+            }
+        });
+    </script>
+
+    </div>
+    </body>
+
+    </html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+        <%= pageTitle %>
+    </title>
+    <link rel="stylesheet" href="/css/panel.css?v=5.0" />
+</head>
+
+<body>
+    <aside class="sidebar">
+        <a class="sidebar-logo" href="/panel/dashboard">
+            <span class="brand-mark">A</span>
+            <div><span>Auto Akın</span><small>Yönetim Paneli</small></div>
+        </a>
+        <nav class="menu">
+            <a href="/panel/dashboard" class="<%= pageTitle.includes('Dashboard') ? 'active' : '' %>"><span
+                    class="menu-icon">📊</span> Dashboard</a>
+            <a href="/panel/urunler" class="<%= pageTitle.includes('Ürünler') ? 'active' : '' %>"><span
+                    class="menu-icon">📦</span> Ürünler</a>
+            <a href="/panel/siparisler" class="<%= pageTitle.includes('Sipariş') ? 'active' : '' %>"><span
+                    class="menu-icon">🧾</span> Siparişler</a>
+            <a href="/panel/araclar" class="<%= pageTitle.includes('Araç') ? 'active' : '' %>"><span
+                    class="menu-icon">🚗</span> Araçlar</a>
+            <a href="/panel/destek" class="<%= pageTitle.includes('Destek') ? 'active' : '' %>"><span
+                    class="menu-icon">💬</span> Destek</a>
+            <a href="/panel/ayarlar" class="<%= pageTitle.includes('Ayarlar') ? 'active' : '' %>"><span
+                    class="menu-icon">⚙️</span> Ayarlar</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/" target="_blank">🌐 Siteyi Görüntüle</a>
+            <a href="#" onclick="fetch('/api/auth/admin-logout',{method:'POST'}).then(()=>location.href='/panel')">🚪
+                Çıkış</a>
+        </div>
+    </aside>
+
+    <div class="main">
+        <div class="panel-top">
+            <div>
+                <h1>
+                    <%= pageTitle.split('|')[0].trim() %>
+                </h1>
+                <p>Hoşgeldin, <%= admin.name %>
+                </p>
+            </div>
+        </div>
+        <div class="toast" id="toast"></div>
+        <script>function showToast(m, t = '') { const e = document.getElementById('toast'); e.textContent = m; e.className = 'toast show ' + t; setTimeout(() => e.className = 'toast', 2500); }</script>

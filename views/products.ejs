@@ -1,0 +1,110 @@
+<%- include('partials/header') %>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="/">Ana Sayfa</a> <span>→</span> <span>Ürünler</span></div>
+        <h1>Tüm Ürünler</h1>
+    </div>
+
+    <div class="filter-bar" data-q="<%= query.q || '' %>" data-brand="<%= query.vehicle_brand_id || '' %>"
+        data-model="<%= query.vehicle_model_id || '' %>">
+        <input type="text" id="searchInput" placeholder="Ürün, marka veya OEM no ara..." value="<%= query.q || '' %>" />
+        <select id="categoryFilter">
+            <option value="">Tüm Kategoriler</option>
+            <% categories.forEach(c=> { %><option value="<%= c.id %>" <%=query.category_id==c.id ? 'selected' : '' %>>
+                    <%= c.name %>
+                </option>
+                <% }); %>
+        </select>
+        <select id="vBrandFilter" onchange="loadModels(this.value,'vModelFilter');loadProducts()">
+            <option value="">Tüm Markalar</option>
+            <% vehicleBrands.forEach(vb=> { %><option value="<%= vb.id %>" <%=query.vehicle_brand_id==vb.id ? 'selected'
+                    : '' %>><%= vb.name %>
+                </option>
+                <% }); %>
+        </select>
+        <select id="vModelFilter">
+            <option value="">Tüm Modeller</option>
+        </select>
+        <select id="sortFilter">
+            <option value="">Sırala</option>
+            <option value="price-asc">Fiyat ↑</option>
+            <option value="price-desc">Fiyat ↓</option>
+            <option value="name">İsim (A-Z)</option>
+        </select>
+        <span class="results-count" id="resultsCount"></span>
+    </div>
+
+    <section class="section">
+        <div class="grid grid-4" id="productsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="empty-state-icon">🔍</div>
+            <h3>Ürün bulunamadı</h3>
+            <p class="muted">Farklı arama terimi veya kategori deneyin.</p>
+        </div>
+    </section>
+
+    <script>
+        function loadProducts() {
+            const q = document.getElementById('searchInput').value.trim();
+            const cat = document.getElementById('categoryFilter').value;
+            const brand = document.getElementById('vBrandFilter').value;
+            const model = document.getElementById('vModelFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+
+            let url = '/api/products?';
+            if (q) url += 'q=' + encodeURIComponent(q) + '&';
+            if (cat) url += 'category_id=' + cat + '&';
+            if (model) url += 'vehicle_model_id=' + model + '&';
+            else if (brand) url += 'vehicle_brand_id=' + brand + '&';
+            if (sort) url += 'sort=' + sort;
+
+            fetch(url).then(r => r.json()).then(products => {
+                const grid = document.getElementById('productsGrid');
+                const empty = document.getElementById('emptyState');
+                document.getElementById('resultsCount').textContent = products.length + ' ürün';
+
+                if (!products.length) { grid.style.display = 'none'; empty.style.display = 'block'; return; }
+                grid.style.display = ''; empty.style.display = 'none'; grid.innerHTML = '';
+
+                products.forEach(p => {
+                    const img = p.image ? `<img src="/${p.image}" alt="${p.name}" />` : '';
+                    const old = p.old_price ? `<span class="product-old-price">${Number(p.old_price).toLocaleString('tr-TR')} TL</span>` : '';
+                    const badge = p.badge ? `<span class="product-badge">${p.badge}</span>` : '';
+                    const oem = p.oem_no ? `<div style="font-size:11px;color:var(--gray-500);">OEM: ${p.oem_no}</div>` : '';
+
+                    grid.innerHTML += `<a class="product-card" href="/urun/${p.id}">
+        <div class="product-img">${badge}${img}</div>
+        <div class="product-brand">${p.brand || ''}</div>
+        <div class="product-title">${p.name}</div>
+        ${oem}
+        <div class="product-prices"><span class="product-price">${Number(p.price).toLocaleString('tr-TR')} TL</span>${old}</div>
+        <button class="btn btn-small add-to-cart-btn" data-id="${p.id}">Sepete Ekle</button>
+      </a>`;
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            document.getElementById('searchInput').addEventListener('input', debounce(loadProducts, 300));
+            ['categoryFilter', 'vModelFilter', 'sortFilter'].forEach(id => document.getElementById(id).addEventListener('change', loadProducts));
+
+            const bar = document.querySelector('.filter-bar');
+            const startBrand = bar.dataset.brand;
+            const startModel = bar.dataset.model;
+
+            if (startBrand) {
+                loadModels(startBrand, 'vModelFilter');
+                if (startModel) {
+                    setTimeout(() => {
+                        document.getElementById('vModelFilter').value = startModel;
+                        loadProducts();
+                    }, 500);
+                }
+            }
+        });
+
+        function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+    </script>
+
+    <%- include('partials/footer') %>

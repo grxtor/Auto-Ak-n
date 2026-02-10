@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+        <%= typeof pageTitle !=='undefined' ? pageTitle : 'Auto Akın' %>
+    </title>
+    <meta name="description"
+        content="<%= typeof pageDesc !== 'undefined' ? pageDesc : 'Otomotiv yedek parça pazaryeri.' %>" />
+    <meta name="keywords"
+        content="yedek parça, otomotiv, oto yedek parça, fren balatası, amortisör, motor, araç parçası, auto akın" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="<%= typeof pageTitle !== 'undefined' ? pageTitle : 'Auto Akın' %>" />
+    <meta property="og:description" content="<%= typeof pageDesc !== 'undefined' ? pageDesc : '' %>" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="tr_TR" />
+    <link rel="stylesheet" href="/css/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">
+            <span class="brand-mark">A</span>
+            <div class="brand-text">
+                <div class="brand-name">Auto Akın</div>
+                <div class="brand-sub">Yedek Parça Pazaryeri</div>
+            </div>
+        </a>
+        <nav class="top-links">
+            <a class="link-underline" href="/urunler">Ürünler</a>
+            <a class="link-underline" href="/#kategoriler">Kategoriler</a>
+            <a class="link-underline" href="/siparis-takip">Sipariş Takip</a>
+            <a class="link-underline" href="/#destek">Destek</a>
+        </nav>
+        <div class="top-actions">
+            <% if (user) { %>
+                <a class="btn btn-outline btn-small" href="/favoriler">❤️</a>
+                <span style="font-weight:600;font-size:14px;">
+                    <%= user.name %>
+                </span>
+                <button class="btn btn-outline btn-small"
+                    onclick="fetch('/api/auth/logout',{method:'POST'}).then(()=>location.reload())">Çıkış</button>
+                <% } else { %>
+                    <a class="btn btn-outline" href="/giris">Giriş</a>
+                    <% } %>
+                        <a class="btn cart-btn" href="/sepet">
+                            🛒 Sepet <span class="cart-badge" id="cartBadge">0</span>
+                        </a>
+        </div>
+    </header>
+    <main>

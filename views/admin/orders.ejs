@@ -1,0 +1,139 @@
+<%- include('layout') %>
+
+    <h2 style="margin-bottom:24px;">Siparişler (<%= orders.length %>)</h2>
+
+    <div class="panel-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Müşteri</th>
+                    <th>Toplam</th>
+                    <th>Durum</th>
+                    <th>Ödeme</th>
+                    <th>Tarih</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach(o=> { %>
+                    <tr>
+                        <td><strong>
+                                <%= o.order_no %>
+                            </strong></td>
+                        <td>
+                            <%= o.customer_name %><br><small class="muted">
+                                    <%= o.customer_phone %>
+                                </small>
+                        </td>
+                        <td class="price">
+                            <%= Number(o.total).toLocaleString('tr-TR') %> ₺
+                        </td>
+                        <td><span
+                                class="status <%= o.status==='delivered'?'success':o.status==='cancelled'?'pending':'warn' %>">
+                                <%= o.status %>
+                            </span></td>
+                        <td>
+                            <span
+                                class="status <%= o.payment_status==='approved'?'success':o.payment_status==='rejected'?'pending':'warn' %>">
+                                <%= o.payment_status %>
+                            </span>
+                            <% if(o.receipt_image){%><br><a href="/<%= o.receipt_image %>" target="_blank"
+                                    style="font-size:11px;color:var(--red);">📄 Dekont</a>
+                                <%}%>
+                        </td>
+                        <td>
+                            <%= new Date(o.created_at).toLocaleDateString('tr-TR') %>
+                        </td>
+                        <td><button class="btn btn-outline btn-small open-order-btn" data-id="<%= o.id %>">📋
+                                Detay</button>
+                        </td>
+                    </tr>
+                    <% }); %>
+                        <% if(!orders.length){%>
+                            <tr>
+                                <td colspan="7" style="text-align:center;padding:32px;">Henüz sipariş yok</td>
+                            </tr>
+                            <%}%>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal" style="max-width:700px;">
+            <button class="modal-close">✕</button>
+            <h3 id="omTitle">Sipariş Detayı</h3>
+            <div id="omContent"></div>
+            <hr />
+            <h4>Durumu Güncelle</h4>
+            <form id="omForm">
+                <input type="hidden" id="omId" />
+                <div class="form-row">
+                    <div class="form-group"><label>Sipariş Durumu</label>
+                        <select id="omStatus">
+                            <option value="pending">Beklemede</option>
+                            <option value="confirmed">Onaylandı</option>
+                            <option value="preparing">Hazırlanıyor</option>
+                            <option value="shipped">Kargoda</option>
+                            <option value="delivered">Teslim</option>
+                            <option value="cancelled">İptal</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Ödeme Durumu</label>
+                        <select id="omPayment">
+                            <option value="waiting">Bekleniyor</option>
+                            <option value="uploaded">Dekont Yüklendi</option>
+                            <option value="approved">Onaylandı</option>
+                            <option value="rejected">Reddedildi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Kargo Şirketi</label><input type="text" id="omCargo" /></div>
+                    <div class="form-group"><label>Takip No</label><input type="text" id="omTracking" /></div>
+                </div>
+                <button class="btn btn-block" type="submit">Güncelle</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.open-order-btn')) {
+                const id = e.target.closest('.open-order-btn').dataset.id;
+                const r = await fetch('/panel/siparisler/' + id); const d = await r.json(); const o = d.order;
+                document.getElementById('omTitle').textContent = 'Sipariş: ' + o.order_no;
+                document.getElementById('omId').value = id;
+                document.getElementById('omStatus').value = o.status;
+                document.getElementById('omPayment').value = o.payment_status;
+                document.getElementById('omCargo').value = o.cargo_company || '';
+                document.getElementById('omTracking').value = o.tracking_no || '';
+                let html = `<div style="font-size:13px;line-height:2;"><strong>Müşteri:</strong> ${o.customer_name}<br><strong>Telefon:</strong> ${o.customer_phone}<br><strong>Email:</strong> ${o.customer_email || '—'}<br><strong>Adres:</strong> ${o.customer_address || '—'}<br><strong>Not:</strong> ${o.customer_note || '—'}</div><hr><strong>Ürünler:</strong>`;
+                d.items.forEach(i => { html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px;"><span>${i.product_name} × ${i.quantity}</span><span style="font-weight:700;">${(i.price * i.quantity).toLocaleString('tr-TR')} ₺</span></div>`; });
+                html += `<div style="text-align:right;font-weight:800;font-size:16px;margin-top:8px;color:var(--red);">Toplam: ${Number(o.total).toLocaleString('tr-TR')} ₺</div>`;
+                document.getElementById('omContent').innerHTML = html;
+                document.getElementById('orderModal').classList.add('open');
+            }
+
+            if (e.target.closest('.modal-close')) {
+                e.target.closest('.modal-overlay').classList.remove('open');
+            }
+        });
+
+        document.getElementById('omForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const id = document.getElementById('omId').value;
+            const r = await fetch('/panel/siparisler/update/' + id, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                    status: document.getElementById('omStatus').value, payment_status: document.getElementById('omPayment').value,
+                    tracking_no: document.getElementById('omTracking').value, cargo_company: document.getElementById('omCargo').value
+                })
+            });
+            const d = await r.json(); if (d.success) { showToast('Sipariş güncellendi!'); setTimeout(() => location.reload(), 800); }
+        });
+    </script>
+
+    </div>
+    </body>
+
+    </html>

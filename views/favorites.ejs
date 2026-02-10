@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+    <div class="page-header">
+        <div class="breadcrumb"><a href="/">Ana Sayfa</a> <span>→</span> <span>Favoriler</span></div>
+        <h1>Favorilerim</h1>
+    </div>
+    <section class="section">
+        <% if (favorites.length) { %>
+            <div class="grid grid-4">
+                <% favorites.forEach(p=> { %>
+                    <a class="product-card" href="/urun/<%= p.id %>">
+                        <div class="product-img">
+                            <% if (p.image) { %><img src="/<%= p.image %>" alt="<%= p.name %>" />
+                                <% } %>
+                        </div>
+                        <div class="product-brand">
+                            <%= p.brand || '' %>
+                        </div>
+                        <div class="product-title">
+                            <%= p.name %>
+                        </div>
+                        <div class="product-prices"><span class="product-price">
+                                <%= Number(p.price).toLocaleString('tr-TR') %> TL
+                            </span></div>
+                        <button class="btn btn-small add-to-cart-btn" data-id="<%= p.id %>">Sepete
+                            Ekle</button>
+                    </a>
+                    <% }); %>
+            </div>
+            <% } else { %>
+                <div class="empty-state">
+                    <div class="empty-state-icon">❤️</div>
+                    <h3>Henüz favoriniz yok</h3>
+                    <p class="muted">Ürün detay sayfasından favorilere ekleyebilirsiniz.</p><a class="btn"
+                        href="/urunler">Ürünlere Git</a>
+                </div>
+                <% } %>
+    </section>
+    <%- include('partials/footer') %>
