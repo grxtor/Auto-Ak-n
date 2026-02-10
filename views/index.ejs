@@ -7,7 +7,7 @@
     <!-- Hero -->
     <section class="hero">
         <div class="hero-left">
-            <div class="badge">🏎️ Otomotiv Pazaryeri</div>
+            <div class="badge">Auto Akın Pazaryeri</div>
             <h1>Aradığın tüm otomotiv parçaları tek yerde.</h1>
             <p class="muted">Fren, süspansiyon, motor, kaporta, aksesuar ve daha fazlası. Hızlı tedarik, net fiyat,
                 güvenli ödeme.</p>
@@ -19,6 +19,11 @@
                 <a class="btn" href="/urunler">Öne Çıkanlar</a>
                 <a class="btn btn-black" href="/urunler">Tüm Ürünler →</a>
             </div>
+            <div class="hero-pills">
+                <span><span class="dot"></span> Aynı gün kargo</span>
+                <span><span class="dot"></span> IBAN ile güvenli ödeme</span>
+                <span><span class="dot"></span> 7/24 canlı destek</span>
+            </div>
         </div>
         <div class="hero-right">
             <div class="hero-card">
@@ -26,9 +31,12 @@
                 <ul class="hero-list">
                     <% discounted.forEach(d=> { %>
                         <% const disc=d.old_price ? Math.round((1 - d.price / d.old_price) * 100) : 0; %>
-                            <li><a href="/urun/<%= d.id %>">
-                                    <%= d.name %> — %<%= disc %> indirim
-                                </a></li>
+                            <li>
+                                <a href="/urun/<%= d.id %>">
+                                    <span class="pill pill-red">-%<%= disc %></span>
+                                    <span><%= d.name %></span>
+                                </a>
+                            </li>
                             <% }); %>
                                 <% if (!discounted.length) { %>
                                     <li>Henüz indirimli ürün yok</li>
@@ -39,25 +47,35 @@
         </div>
     </section>
 
+    <section class="meta-strip">
+        <div class="meta-item"><span class="dot"></span> 750₺ üzeri kargo bedava</div>
+        <div class="meta-item"><span class="dot"></span> OEM & muadil parça desteği</div>
+        <div class="meta-item"><span class="dot"></span> Faturalı satış, iade garantisi</div>
+    </section>
+
     <!-- Araç Seçici -->
     <% if (vehicleBrands.length) { %>
         <section class="section light">
             <div class="section-header">
-                <h2>🚗 Aracına Göre Parça Bul</h2>
+                <h2>Aracına Göre Parça Bul</h2>
             </div>
-            <form class="filter-bar" style="background:transparent;border:none;padding:0;" action="/urunler"
-                method="GET">
-                <select name="vehicle_brand_id" id="vBrand" onchange="loadModels(this.value,'vModel')" style="flex:1;">
-                    <option value="">Marka Seçin</option>
-                    <% vehicleBrands.forEach(vb=> { %><option value="<%= vb.id %>">
-                            <%= vb.name %>
-                        </option>
+            <form class="filter-bar card-flat" action="/urunler" method="GET">
+                <div class="filter-field">
+                    <label>Marka</label>
+                    <select name="vehicle_brand_id" id="vBrand" onchange="loadModels(this.value,'vModel')">
+                        <option value="">Seçin</option>
+                        <% vehicleBrands.forEach(vb=> { %>
+                            <option value="<%= vb.id %>"><%= vb.name %></option>
                         <% }); %>
-                </select>
-                <select name="vehicle_model_id" id="vModel" style="flex:1;">
-                    <option value="">Önce marka seçin</option>
-                </select>
-                <button class="btn" type="submit">🔍 Parça Bul</button>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Model</label>
+                    <select name="vehicle_model_id" id="vModel">
+                        <option value="">Önce marka seçin</option>
+                    </select>
+                </div>
+                <button class="btn btn-lg" type="submit">Parça Bul</button>
             </form>
         </section>
         <% } %>
@@ -120,7 +138,7 @@
                         <% }); %>
                             <% if (!featured.length) { %>
                                 <div class="empty-state" style="grid-column:1/-1;">
-                                    <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-icon">Stok yok</div>
                                     <h3>Henüz ürün eklenmemiş</h3>
                                     <p class="muted">Admin panelinden ürün ekleyebilirsiniz.</p>
                                 </div>

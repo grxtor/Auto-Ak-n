@@ -7,14 +7,13 @@
         </div>
     </div>
 
-    <div class="panel-grid" style="grid-template-columns: 1fr 1.5fr;">
+    <div class="panel-grid split-2">
         <!-- Markalar -->
         <div class="panel-card">
             <div class="card-header">
                 <span>Araç Markaları (<%= brands.length %>)</span>
             </div>
-            <form action="/panel/araclar/add-brand" method="POST" class="form-grid"
-                style="grid-template-columns: 1fr auto; margin-bottom: 24px;">
+            <form action="/panel/araclar/add-brand" method="POST" class="form-grid compact" style="margin-bottom: 12px;">
                 <div class="form-group" style="margin-bottom:0;">
                     <input type="text" name="name" placeholder="Yeni marka adı..." required />
                 </div>
@@ -38,7 +37,7 @@
             </div>
 
             <form action="/panel/araclar/add-model" method="POST" style="margin-bottom: 32px;">
-                <div class="form-grid" style="margin-bottom:16px;">
+                <div class="form-grid tight" style="margin-bottom:16px;">
                     <div class="form-group" style="margin-bottom:0;">
                         <label>Marka</label>
                         <select name="brand_id" required>
@@ -56,7 +55,7 @@
                     </div>
                 </div>
 
-                <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; align-items: flex-end;">
+                <div class="form-grid three-col align-end">
                     <div class="form-group" style="margin-bottom:0;">
                         <label>Başlangıç Yılı</label>
                         <input type="number" name="year_start" placeholder="2010" />
@@ -69,9 +68,8 @@
                 </div>
             </form>
 
-            <div class="panel-table"
-                style="max-height:500px; overflow-y:auto; border-top: none; border-radius: 0 0 var(--radius) var(--radius);">
-                <table style="border-top: 1px solid var(--border-light);">
+            <div class="table-scroll">
+                <table class="panel-table">
                     <thead style="position: sticky; top:0; z-index: 10;">
                         <tr>
                             <th>Marka</th>

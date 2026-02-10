@@ -211,6 +211,8 @@ button { font-family: inherit; }
   padding: 56px 48px;
   min-height: 440px;
   align-items: center;
+  background: radial-gradient(circle at 12% 20%, #fff5f4 0, #fff 32%), radial-gradient(circle at 80% 0, #ffe0dd 0, #fff 40%);
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .hero-left h1 {
@@ -231,6 +233,7 @@ button { font-family: inherit; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
 }
 
 .searchbar {
@@ -262,6 +265,36 @@ button { font-family: inherit; }
 .hero-cta {
   display: flex;
   gap: 12px;
+}
+
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  color: var(--gray-700);
+  font-weight: 600;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--gray-100);
+  font-size: 12px;
+}
+
+.pill-red { background: var(--red-light); color: var(--red); }
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  display: inline-block;
+  box-shadow: 0 0 0 4px rgba(225,6,0,0.12);
 }
 
 .hero-right { display: flex; align-items: flex-start; }
@@ -307,12 +340,36 @@ button { font-family: inherit; }
   transition: background var(--transition);
 }
 
+.hero-list li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
 .hero-list li:hover { background: var(--red-light); }
 
 .hero-list li::before {
   content: "→";
   color: var(--red);
   font-weight: 800;
+}
+
+.meta-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 16px 48px 8px;
+  color: var(--gray-700);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.meta-item {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 12px 14px;
 }
 
 /* ── Sections ── */
@@ -1051,6 +1108,27 @@ button { font-family: inherit; }
   background: var(--white);
   border-bottom: 1px solid var(--gray-200);
   align-items: center;
+}
+
+.card-flat {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-flat.filter-bar { border-bottom: none; }
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.filter-field label {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--gray-700);
 }
 
 .filter-bar input,
