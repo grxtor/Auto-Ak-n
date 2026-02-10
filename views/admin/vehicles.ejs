@@ -1,69 +1,116 @@
 <%- include('layout') %>
 
-    <h2 style="margin-bottom:24px;">Araç Yönetimi</h2>
+    <div class="panel-top">
+        <div>
+            <h1>Araç Yönetimi</h1>
+            <p>Marka ve model yapılandırması</p>
+        </div>
+    </div>
 
-    <div class="panel-grid">
+    <div class="panel-grid" style="grid-template-columns: 1fr 1.5fr;">
         <!-- Markalar -->
         <div class="panel-card">
-            <div class="card-header">Araç Markaları (<%= brands.length %>)</div>
-            <form action="/panel/araclar/add-brand" method="POST" style="display:flex;gap:8px;margin-bottom:16px;">
-                <input type="text" name="name" placeholder="Yeni marka adı..." required style="flex:1;" />
+            <div class="card-header">
+                <span>Araç Markaları (<%= brands.length %>)</span>
+            </div>
+            <form action="/panel/araclar/add-brand" method="POST" class="form-grid"
+                style="grid-template-columns: 1fr auto; margin-bottom: 24px;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <input type="text" name="name" placeholder="Yeni marka adı..." required />
+                </div>
                 <button class="btn" type="submit">Ekle</button>
             </form>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
                 <% brands.forEach(b=> { %>
-                    <span class="tag">
+                    <div class="tag">
                         <%= b.name %>
-                            <span class="delete-brand-btn delete-btn" data-id="<%= b.id %>">✕</span>
-                    </span>
+                            <span class="delete-btn delete-brand-btn" data-id="<%= b.id %>">✕</span>
+                    </div>
                     <% }); %>
             </div>
         </div>
 
         <!-- Modeller -->
         <div class="panel-card">
-            <div class="card-header">Araç Modelleri (<%= models.length %>)</div>
-            <form action="/panel/araclar/add-model" method="POST" style="display:grid;gap:8px;margin-bottom:16px;">
-                <select name="brand_id" required>
-                    <option value="">Marka seçin</option>
-                    <% brands.forEach(b=> { %><option value="<%= b.id %>">
-                            <%= b.name %>
-                        </option>
-                        <% }); %>
-                </select>
-                <input type="text" name="name" placeholder="Model adı (ör: Corolla)" required />
-                <div style="display:flex;gap:8px;">
-                    <input type="number" name="year_start" placeholder="Başlangıç yılı" style="flex:1;" />
-                    <input type="number" name="year_end" placeholder="Bitiş yılı" style="flex:1;" />
+            <div class="card-header">
+                <span>Araç Modelleri (<%= models.length %>)</span>
+            </div>
+
+            <form action="/panel/araclar/add-model" method="POST" style="margin-bottom: 32px;">
+                <div class="form-grid" style="margin-bottom:16px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Marka</label>
+                        <select name="brand_id" required>
+                            <option value="">Seçiniz...</option>
+                            <% brands.forEach(b=> { %>
+                                <option value="<%= b.id %>">
+                                    <%= b.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Model Adı</label>
+                        <input type="text" name="name" placeholder="Ör: Corolla" required />
+                    </div>
                 </div>
-                <button class="btn" type="submit">Model Ekle</button>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; align-items: flex-end;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Başlangıç Yılı</label>
+                        <input type="number" name="year_start" placeholder="2010" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Bitiş Yılı</label>
+                        <input type="number" name="year_end" placeholder="2024" />
+                    </div>
+                    <button class="btn" type="submit" style="height: 45px; padding: 0 32px;">Model Ekle</button>
+                </div>
             </form>
-            <div class="panel-table" style="max-height:400px;overflow-y:auto;">
-                <table>
-                    <thead>
+
+            <div class="panel-table"
+                style="max-height:500px; overflow-y:auto; border-top: none; border-radius: 0 0 var(--radius) var(--radius);">
+                <table style="border-top: 1px solid var(--border-light);">
+                    <thead style="position: sticky; top:0; z-index: 10;">
                         <tr>
                             <th>Marka</th>
                             <th>Model</th>
-                            <th>Yıl</th>
-                            <th></th>
+                            <th>Yıllar</th>
+                            <th style="width: 50px;"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% models.forEach(m=> { %>
+                        <% if (models.length===0) { %>
                             <tr>
-                                <td>
-                                    <%= m.brand_name %>
-                                </td>
-                                <td>
-                                    <%= m.name %>
-                                </td>
-                                <td>
-                                    <%= m.year_start ? m.year_start + '-' + (m.year_end || '...' ) : '—' %>
-                                </td>
-                                <td><button class="btn btn-outline btn-small delete-model-btn" data-id="<%= m.id %>"
-                                        style="color:var(--red);">✕</button></td>
+                                <td colspan="4" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                                    Henüz model eklenmemiş.</td>
                             </tr>
-                            <% }); %>
+                            <% } %>
+                                <% models.forEach(m=> { %>
+                                    <tr>
+                                        <td style="font-weight: 600;">
+                                            <%= m.brand_name %>
+                                        </td>
+                                        <td>
+                                            <%= m.name %>
+                                        </td>
+                                        <td>
+                                            <span class="status success"
+                                                style="background: transparent; color: var(--text-muted); font-size: 13px;">
+                                                <%= m.year_start ? m.year_start + ' — ' + (m.year_end || 'Mevcut' )
+                                                    : '—' %>
+                                            </span>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <button class="btn btn-outline btn-small delete-model-btn"
+                                                data-id="<%= m.id %>"
+                                                style="padding: 6px; min-width: 32px; border-radius: 6px;">
+                                                ✕
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
                     </tbody>
                 </table>
             </div>
@@ -74,20 +121,15 @@
         document.addEventListener('click', async (e) => {
             if (e.target.closest('.delete-brand-btn')) {
                 const id = e.target.closest('.delete-brand-btn').dataset.id;
-                if (!confirm('Bu markayı ve tüm modellerini silmek istediğinize emin misiniz?')) return;
-                await fetch('/panel/araclar/delete-brand/' + id, { method: 'POST' });
-                location.reload();
+                if (!confirm('Bu markayı ve TÜM bağlı modellerini silmek istediğinize emin misiniz?')) return;
+                const res = await fetch('/panel/araclar/delete-brand/' + id, { method: 'POST' });
+                if (res.ok) location.reload();
             }
             if (e.target.closest('.delete-model-btn')) {
                 const id = e.target.closest('.delete-model-btn').dataset.id;
                 if (!confirm('Bu modeli silmek istediğinize emin misiniz?')) return;
-                await fetch('/panel/araclar/delete-model/' + id, { method: 'POST' });
-                location.reload();
+                const res = await fetch('/panel/araclar/delete-model/' + id, { method: 'POST' });
+                if (res.ok) location.reload();
             }
         });
     </script>
-
-    </div>
-    </body>
-
-    </html>
