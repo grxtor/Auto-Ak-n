@@ -63,13 +63,20 @@ router.post('/auth/login', async (req, res) => {
             const [users] = await conn.query('SELECT * FROM users WHERE email = ?', [email]);
             if (!users.length) return res.status(401).json({ error: 'E-posta veya şifre hatalı.' });
             const user = users[0];
-            const storedHash = user.password.toString();
+
+            // Debug: Check if password exists
+            if (user.password === undefined) {
+                console.error('❌ User password column is undefined! Columns:', Object.keys(user));
+                return res.status(500).json({ error: 'Veritabanı şema hatası: password sütunu bulunamadı.' });
+            }
+
+            const storedHash = (user.password || '').toString();
 
             if (!(await bcrypt.compare(password, storedHash))) {
                 return res.status(401).json({ error: 'E-posta veya şifre hatalı.' });
             }
             req.session.user = { id: user.id, name: user.name, email: user.email };
-            res.json({ success: true, name: users[0].name });
+            res.json({ success: true, name: user.name });
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -86,7 +93,14 @@ router.post('/auth/admin-login', async (req, res) => {
             const [admins] = await conn.query('SELECT * FROM admins WHERE email = ?', [email]);
             if (!admins.length) return res.status(401).json({ error: 'Admin bilgileri hatalı.' });
             const admin = admins[0];
-            const storedHash = admin.password.toString(); // Buffer -> String conversion if needed
+
+            // Debug: Check if password exists
+            if (admin.password === undefined) {
+                console.error('❌ Admin password column is undefined! Columns:', Object.keys(admin));
+                return res.status(500).json({ error: 'Veritabanı şema hatası: password sütunu bulunamadı.' });
+            }
+
+            const storedHash = (admin.password || '').toString();
 
             if (!(await bcrypt.compare(password, storedHash))) {
                 return res.status(401).json({ error: 'Admin bilgileri hatalı.' });
