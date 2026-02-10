@@ -25,7 +25,7 @@
                         <td>
                             <% if(p.image){%><img src="/<%= p.image %>"
                                     style="width:40px;height:40px;object-fit:cover;border-radius:6px;" />
-                                <%}else{%>📦<%}%>
+                                <%}else{%><span style="font-size:11px;color:var(--text-muted);">Görsel yok</span><%}%>
                         </td>
                         <td><strong>
                                 <%= p.name %>
@@ -51,9 +51,9 @@
                                 <%= p.is_active?'Aktif':'Pasif' %>
                             </span></td>
                         <td style="display:flex;gap:6px;">
-                            <button class="btn btn-outline btn-small edit-product-btn" data-id="<%= p.id %>">✏️</button>
+                            <button class="btn btn-outline btn-small edit-product-btn" data-id="<%= p.id %>">Düzenle</button>
                             <button class="btn btn-outline btn-small delete-product-btn" data-id="<%= p.id %>"
-                                style="color:var(--primary);">🗑️</button>
+                                style="color:var(--primary);">Sil</button>
                         </td>
                     </tr>
                     <% }); %>
